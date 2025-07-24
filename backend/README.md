@@ -242,7 +242,7 @@ If any validation fails, the endpoint returns a `400 Bad Request` status with de
 
 ```json
 {
-  "message": "Invalid email or password"
+  "message": "Unauthorized access"
 }
 ```
 
@@ -290,6 +290,116 @@ curl -X POST http://localhost:5000/users/login \
     "email": "john.doe@example.com",
     "socketId": null
   }
+}
+```
+
+## `/users/logout`
+
+### Description
+This endpoint is used to log out an authenticated user. It performs the following steps:
+1. Invalidates the user's JSON Web Token (JWT).
+2. Removes the token from the client-side storage (e.g., cookies, local storage).
+3. Returns a success message in the response.
+
+This endpoint is essential for user security, ensuring that the user's session can be terminated.
+
+---
+
+### Request
+
+- **Method:** POST
+- **URL:** `/users/logout`
+- **Content-Type:** application/json
+
+#### Request Body
+
+The request body must be a JSON object with the following fields:
+
+```json
+{
+  "token": "<JWT-token>" // Required, the token to be invalidated
+}
+```
+
+---
+
+### Validations
+The following validations are applied to the input data:
+- **token:** Must be a valid JWT.
+
+If any validation fails, the endpoint returns a `400 Bad Request` status with detailed error messages.
+
+---
+
+### Response
+
+#### Success (Logged Out)
+- **Status Code:** 200 OK
+- **Response Body:**
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+#### Error (Validation Failed)
+- **Status Code:** 400 Bad Request
+- **Response Body:**
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Error message",
+      "param": "field_name",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Error (Invalid Token)
+- **Status Code:** 401 Unauthorized
+- **Response Body:**
+
+```json
+{
+  "error": "Invalid token"
+}
+```
+
+---
+
+### Workflow
+
+1. **Validation:** The input data is validated using `express-validator`. If validation fails, a `400 Bad Request` response is sent with detailed error messages.
+2. **Token Invalidation:** The provided token is invalidated, preventing its future use.
+3. **Response:** A success message is returned in the response.
+
+---
+
+### Additional Notes
+- The token should be removed from the client-side storage (e.g., cookies, local storage) after a successful logout.
+- Ensure that the `JWT_SECRET` environment variable is set in your `.env` file for token validation.
+
+---
+
+### Example Usage
+
+#### Request
+```bash
+curl -X POST http://localhost:5000/users/logout \
+-H "Content-Type: application/json" \
+-d '{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}'
+```
+
+#### Response
+```json
+{
+  "message": "Logged out successfully"
 }
 ```
 
