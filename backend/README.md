@@ -614,5 +614,161 @@ curl -X POST http://localhost:5000/captains/register \
 }
 ```
 
+## `/captains/login`
+
+### Description
+This endpoint is used to authenticate an existing captain. It performs the following steps:
+1. Validates the input data using `express-validator`.
+2. Checks if the captain exists in the database.
+3. Verifies the provided password against the stored hashed password.
+4. Generates a JSON Web Token (JWT) for authentication.
+5. Returns the token and captain details in the response.
+
+---
+
+### Request
+
+- **Method:** POST  
+- **URL:** `/captains/login`  
+- **Content-Type:** application/json  
+
+#### Request Body
+
+The request body must be a JSON object with the following fields:
+
+```json
+{
+  "email": "john.doe@example.com", // Required, must be a valid email address
+  "password": "password123"        // Required, must be at least 6 characters
+}
+```
+
+---
+
+### Validations
+The following validations are applied to the input data:
+- **email:** Must be a valid email address.
+- **password:** Must be at least 6 characters long.
+
+If any validation fails, the endpoint returns a `400 Bad Request` status with detailed error messages.
+
+---
+
+### Response
+
+#### Success (Captain Authenticated)
+- **Status Code:** 200 OK
+- **Response Body:**
+
+```json
+{
+  "token": "<JWT-token>",
+  "captain": {
+    "_id": "<captain-id>",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "socketId": null
+  }
+}
+```
+
+#### Error (Validation Failed)
+- **Status Code:** 400 Bad Request
+- **Response Body:**
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Error message",
+      "param": "field_name",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### Error (Captain Not Found)
+- **Status Code:** 404 Not Found
+- **Response Body:**
+
+```json
+{
+  "error": "Captain not found"
+}
+```
+
+#### Error (Invalid Password)
+- **Status Code:** 401 Unauthorized
+- **Response Body:**
+
+```json
+{
+  "message": "Unauthorized access"
+}
+```
+
+---
+
+### Workflow
+
+1. **Validation:** The input data is validated using `express-validator`. If validation fails, a `400 Bad Request` response is sent with detailed error messages.
+2. **Captain Lookup:** The system checks if the captain exists in the database.
+3. **Password Verification:** The provided password is verified against the stored hashed password.
+4. **Token Generation:** A JWT is generated using the `generateAuthToken` method from the captain model.
+5. **Response:** The token and captain details are returned in the response.
+
+---
+
+### Additional Notes
+- The password is compared in its hashed form for security. It is never decrypted or logged.
+- The generated JWT can be used for authenticating subsequent requests to protected endpoints.
+- Ensure that the `JWT_SECRET` environment variable is set in your `.env` file for token generation.
+
+---
+
+### Example Usage
+
+#### Request
+```bash
+curl -X POST http://localhost:5000/captains/login \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}'
+```
+
+#### Response
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "captain": {
+    "_id": "64b0c8f4e4b0f5a1c8e4b0f5",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "socketId": null
+  }
+}
+```
+
 
 
